@@ -183,11 +183,32 @@ def main():
         time.sleep(3)
 
     # Find HEC-RAS main window
+    # Handle TCU (Terms and Conditions) dialog first
     hecras_hwnd = None
-    for attempt in range(15):
+    for attempt in range(30):
         windows = find_all_windows()
+
+        # Check for TCU dialog and accept it
         for w in windows:
-            if "HEC-RAS" in w["title"] and w["pid"] == pid:
+            if w["pid"] == pid and ("Terms" in w["title"] or "TCU" in w["title"] or "Condition" in w["title"]):
+                log(f"  Found TCU dialog: '{w['title']}' — accepting...")
+                def click_accept(hwnd, _):
+                    text = win32gui.GetWindowText(hwnd)
+                    cls = win32gui.GetClassName(hwnd)
+                    if "accept" in text.lower() or "ok" in text.lower() or "agree" in text.lower() or "yes" in text.lower():
+                        log(f"    Clicking: '{text}' (class={cls})")
+                        win32gui.SendMessage(hwnd, win32con.BM_CLICK, 0, 0)
+                        return False
+                    return True
+                try:
+                    win32gui.EnumChildWindows(w["hwnd"], click_accept, None)
+                except Exception:
+                    pass
+                time.sleep(3)
+
+        # Look for main window — title may be 'HEC-RAS', 'HECRAS', or contain project name
+        for w in windows:
+            if w["pid"] == pid and any(kw in w["title"] for kw in ["HEC-RAS", "HECRAS"]):
                 if win32gui.GetMenu(w["hwnd"]):
                     hecras_hwnd = w["hwnd"]
                     break
