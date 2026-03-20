@@ -249,14 +249,17 @@ def main():
     for menu_name, items in menus.items():
         for item in items:
             item_text = item["text"].lower()
-            if "mapper" in item_text or "ras m" in item_text:
+            # Match "RAS Mapper" but NOT "RAS Mapper User's Manual"
+            if ("mapper" in item_text or "ras m" in item_text) \
+                    and "manual" not in item_text and "user" not in item_text:
                 mapper_menu_id = item["id"]
                 mapper_menu_path = f"{menu_name} -> {item['text']}"
                 log(f"  FOUND: {mapper_menu_path} (ID={mapper_menu_id})")
             if "submenu" in item:
                 for sub in item["submenu"]:
                     sub_text = sub["text"].lower()
-                    if "mapper" in sub_text or "ras m" in sub_text:
+                    if ("mapper" in sub_text or "ras m" in sub_text) \
+                            and "manual" not in sub_text and "user" not in sub_text:
                         mapper_menu_id = sub["id"]
                         mapper_menu_path = f"{menu_name} -> {item['text']} -> {sub['text']}"
                         log(f"  FOUND: {mapper_menu_path} (ID={mapper_menu_id})")
